@@ -18,6 +18,7 @@ from yolox.utils import (
     all_reduce_norm,
     get_local_rank,
     get_model_info,
+    adjust_status,
     get_rank,
     get_world_size,
     gpu_mem_usage,
@@ -45,7 +46,7 @@ class Trainer:
         self.is_distributed = get_world_size() > 1
         self.rank = get_rank()
         self.local_rank = get_local_rank()
-        self.device = "cuda:{}".format(self.local_rank)
+        self.device = "cpu"
         self.use_model_ema = exp.ema
         self.state_dict_object_detect = None
 
@@ -189,7 +190,6 @@ class Trainer:
             self.ema_model.updates = self.max_iter * self.start_epoch
 
         self.model = model
-        self.model.train()
 
         if self.state_dict_object_detect is not None:
             state_dict_object_pose = self.model.state_dict()
@@ -331,10 +331,11 @@ class Trainer:
             if is_parallel(evalmodel):
                 evalmodel = evalmodel.module
 
-        ap50_95, ap50, summary = self.exp.eval(
-            evalmodel, self.evaluator, self.is_distributed
-        )
-        self.model.train()
+        with adjust_status(evalmodel, training=False):
+            ap50_95, ap50, summary = self.exp.eval(
+                evalmodel, self.evaluator, self.is_distributed
+            )
+
         if self.state_dict_object_detect is not None:
             state_dict_object_pose = self.model.state_dict()
 

@@ -196,7 +196,7 @@ def main(exp, args, num_gpu):
     evaluator.per_class_mAP = True
 
     # torch.cuda.set_device(rank)
-    model.cuda(rank)
+    # model.cuda(rank)
     model.eval()
 
     if not args.speed and not args.trt:
@@ -205,7 +205,7 @@ def main(exp, args, num_gpu):
         else:
             ckpt_file = args.ckpt
         logger.info("loading checkpoint from {}".format(ckpt_file))
-        loc = "cuda:{}".format(rank)
+        loc = "cpu"
         ckpt = torch.load(ckpt_file, map_location=loc)
         model.load_state_dict(ckpt["model"], strict=args.strict)
         logger.info("loaded checkpoint done.")
@@ -255,10 +255,10 @@ if __name__ == "__main__":
     dist_url = "auto" if args.dist_url is None else args.dist_url
     launch(
         main,
-        num_gpu,
+        0,
         args.num_machines,
         args.machine_rank,
         backend=args.dist_backend,
         dist_url=dist_url,
-        args=(exp, args, num_gpu),
+        args=(exp, args, 0),
     )

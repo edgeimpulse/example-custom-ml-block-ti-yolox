@@ -21,6 +21,11 @@ def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
         x1 = int(box[2])
         y1 = int(box[3])
 
+        print('x0', x0)
+        print('y0', y0)
+        print('x1', x1)
+        print('y1', y1)
+
         color = (_COLORS[cls_id] * 255).astype(np.uint8).tolist()
         text = '{}:{:.1f}%'.format(class_names[cls_id], score * 100)
         txt_color = (0, 0, 0) if np.mean(_COLORS[cls_id]) > 0.5 else (255, 255, 255)

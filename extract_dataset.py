@@ -40,25 +40,44 @@ def convert(X, Y, category):
     global class_count, total_images, zf, last_printed, converted_images
 
     all_images = []
-    images_file = os.path.join(out_dir, category + '.txt')
+    annotations_file = os.path.join(out_dir, 'annotations', 'instances_' + category + '.json')
+    if not os.path.exists(os.path.dirname(annotations_file)):
+        os.makedirs(os.path.dirname(annotations_file), exist_ok=True)
+
+    metadata = {
+        "info": {
+            "year": 2022,
+            "version": "1.0",
+            "description": "Custom model",
+            "date_created": "2022"
+        },
+        "images": [],
+        "licenses": [{
+            "id": 1,
+            "name": "Proprietary",
+            "url": "https://edgeimpulse.com"
+        }],
+        "type": "instances",
+        "annotations": [],
+        "categories": [],
+    }
 
     for ix in range(0, len(X)):
         raw_img_data = (np.reshape(X[ix], (image_width, image_height, image_channels)) * 255).astype(np.uint8)
         labels = Y[ix]['boundingBoxes']
 
-        images_dir = os.path.join(out_dir, category, 'images')
-        labels_dir = os.path.join(out_dir, category, 'labels')
+        images_dir = os.path.join(out_dir, category)
         os.makedirs(images_dir, exist_ok=True)
-        os.makedirs(labels_dir, exist_ok=True)
 
-        img_file = os.path.join(images_dir, 'image' + str(ix).zfill(5) + '.jpg')
+        img_file = os.path.join(images_dir, str(ix).zfill(12) + '.jpg')
 
         all_images.append(img_file)
 
         im = Image.fromarray(raw_img_data)
         im.save(img_file)
 
-        labels_text = []
+        img_id = len(metadata['images']) + 1
+
         for l in labels:
             if (l['label'] > class_count):
                 class_count = l['label']
@@ -68,227 +87,95 @@ def convert(X, Y, category):
             w = l['w']
             h = l['h']
 
-            # class x_center y_center width height
-            x_center = (x + (w / 2)) / image_width
-            y_center = (y + (h / 2)) / image_height
-            width = w / image_width
-            height = h / image_height
+            metadata['annotations'].append({
+                "segmentation": [],
+                "area": w * h,
+                "iscrowd": 0,
+                "image_id": img_id,
+                "bbox": [x, y, w, h],
+                "category_id": l['label'],
+                "id": len(metadata['annotations']) + 1
+            })
 
-            labels_text.append(str(l['label'] - 1) + ' ' + str(x_center) + ' ' + str(y_center) + ' ' + str(width) + ' ' + str(height))
-
-        with open(os.path.join(labels_dir, 'image' + str(ix).zfill(5) + '.txt'), 'w') as f:
-            f.write('\n'.join(labels_text))
+        metadata['images'].append({
+            "date_captured": "2022",
+            "file_name": os.path.basename(img_file),
+            "id": img_id,
+            "height": image_height,
+            "width": image_width
+        })
 
         converted_images = converted_images + 1
         if (converted_images == 1 or current_ms() - last_printed > 3000):
             print('[' + str(converted_images).rjust(zf) + '/' + str(total_images) + '] Converting images...')
             last_printed = current_ms()
 
-    with open(images_file, 'w') as f:
-        f.write('\n'.join(all_images))
+    for c in range(0, class_count):
+        metadata['categories'].append({
+            "id": c + 1,
+            "name": str(c),
+            "supercategory": str(c)
+        })
 
-convert(X=X_train, Y=Y_train, category='train')
-convert(X=X_test, Y=Y_test, category='valid')
+    with open(annotations_file, 'w') as f:
+        f.write(json.dumps(metadata, indent=4))
+
+convert(X=X_train, Y=Y_train, category='train2017')
+convert(X=X_test, Y=Y_test, category='val2017')
 
 print('[' + str(converted_images).rjust(zf) + '/' + str(total_images) + '] Converting images...')
 
 print('Transforming Edge Impulse data format into something compatible with YOLOX OK')
 print('')
 
-with open(os.path.join(out_dir, 'data.names'), 'w') as f:
-    class_names = []
-    for c in range(0, class_count):
-        class_names.append("class" + str(c))
-    f.write('\n'.join(class_names) + '\n')
+img_tuple = "(" + str(image_width) + ", " + str(image_height) + ")"
 
-with open(os.path.join(out_dir, 'data.data'), 'w') as f:
-    f.write('classes=' + str(class_count) + '\n')
-    f.write('train=' + str(os.path.join(out_dir, 'train.txt')) + '\n')
-    f.write('valid=' + str(os.path.join(out_dir, 'valid.txt')) + '\n')
-    f.write('names=' + str(os.path.join(out_dir, 'data.names')) + '\n')
-    f.write('backup=backup/\n')
-    f.write('eval=coco\n')
+cfg = """#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 
-cfg = """[net]
-# Testing
-batch=1
-subdivisions=1
-# Training
-# batch=64
-# subdivisions=2
-width=""" + str(image_width) + """
-height=""" + str(image_height) + """
-channels=""" + str(image_channels) + """
-momentum=0.9
-decay=0.0005
-angle=0
-saturation = 1.5
-exposure = 1.5
-hue=.1
+import os
 
-learning_rate=0.001
-burn_in=1000
-max_batches = 500200
-policy=steps
-steps=400000,450000
-scales=.1,.1
+import torch.nn as nn
 
-[convolutional]
-batch_normalize=1
-filters=16
-size=3
-stride=1
-pad=1
-activation=leaky
+from yolox.exp import Exp as MyExp
 
-[maxpool]
-size=2
-stride=2
+class Exp(MyExp):
+    def __init__(self):
+        super(Exp, self).__init__()
+        self.depth = 0.33
+        self.width = 0.25
+        self.input_size = """ + img_tuple + """
+        self.random_size = (10, 20)
+        self.mosaic_scale = (0.5, 1.5)
+        self.test_size = """ + img_tuple + """
+        self.mosaic_prob = 0.5
+        self.enable_mixup = False
+        self.max_epoch = """ + str(args.epochs) + """
+        self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
+        self.act = "relu"
+        self.num_classes = """ + str(class_count) + """
 
-[convolutional]
-batch_normalize=1
-filters=32
-size=3
-stride=1
-pad=1
-activation=leaky
+    def get_model(self, sublinear=False):
+        from yolox.utils import freeze_module
 
-[maxpool]
-size=2
-stride=2
+        def init_yolo(M):
+            for m in M.modules():
+                if isinstance(m, nn.BatchNorm2d):
+                    m.eps = 1e-3
+                    m.momentum = 0.03
+        if "model" not in self.__dict__:
+            from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
+            in_channels = [256, 512, 1024]
+            # NANO model use depthwise = True, which is main difference.
+            backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels, act=self.act, depthwise=False, conv_focus=True, split_max_pool_kernel=True)
+            head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels, act=self.act, depthwise=False)
+            self.model = YOLOX(backbone, head)
 
-[convolutional]
-batch_normalize=1
-filters=64
-size=3
-stride=1
-pad=1
-activation=leaky
+        self.model.apply(init_yolo)
+        self.model.head.initialize_biases(1e-2)
+        freeze_module(self.model.backbone.backbone)
+        return self.model
+"""
 
-[maxpool]
-size=2
-stride=2
-
-[convolutional]
-batch_normalize=1
-filters=128
-size=3
-stride=1
-pad=1
-activation=leaky
-
-[maxpool]
-size=2
-stride=2
-
-[convolutional]
-batch_normalize=1
-filters=256
-size=3
-stride=1
-pad=1
-activation=leaky
-
-[maxpool]
-size=2
-stride=2
-
-[convolutional]
-batch_normalize=1
-filters=512
-size=3
-stride=1
-pad=1
-activation=leaky
-
-[maxpool]
-size=2
-stride=1
-
-[convolutional]
-batch_normalize=1
-filters=1024
-size=3
-stride=1
-pad=1
-activation=leaky
-
-###########
-
-[convolutional]
-batch_normalize=1
-filters=256
-size=1
-stride=1
-pad=1
-activation=leaky
-
-[convolutional]
-batch_normalize=1
-filters=512
-size=3
-stride=1
-pad=1
-activation=leaky
-
-[convolutional]
-size=1
-stride=1
-pad=1
-filters=""" + str((4 + 1 + class_count) * 3) + """
-activation=linear
-
-[yolo]
-mask = 3,4,5
-anchors = 10,14,  23,27,  37,58,  81,82,  135,169,  344,319
-classes=""" + str(class_count) + """
-num=6
-jitter=.3
-ignore_thresh = .7
-truth_thresh = 1
-random=1
-
-[route]
-layers = -4
-
-[convolutional]
-batch_normalize=1
-filters=128
-size=1
-stride=1
-pad=1
-activation=leaky
-
-[upsample]
-stride=2
-
-[route]
-layers = -1, 8
-
-[convolutional]
-batch_normalize=1
-filters=256
-size=3
-stride=1
-pad=1
-activation=leaky
-
-[convolutional]
-size=1
-stride=1
-pad=1
-filters=""" + str((4 + 1 + class_count) * 3) + """
-activation=linear
-
-[yolo]
-mask = 1,2,3
-anchors = 10,14,  23,27,  37,58,  81,82,  135,169,  344,319
-classes=""" + str(class_count) + """
-num=6
-jitter=.3
-ignore_thresh = .7
-truth_thresh = 1
-random=1"""
-
-with open(os.path.join(out_dir, 'YOLOX-tiny.cfg'), 'w') as f:
+with open(os.path.join(out_dir, 'custom_nano_ti_lite.py'), 'w') as f:
     f.write(cfg)

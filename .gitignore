@@ -210,6 +210,8 @@ docs/api
 *.npy
 *.pth
 *.onnx
+*.tflite
+*.lite
 *.engine
 events.out.tfevents*
 
@@ -221,3 +223,5 @@ events.out.tfevents*
 .vim
 
 .DS_Store
+
+blah/

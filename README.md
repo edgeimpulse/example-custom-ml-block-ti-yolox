@@ -8,7 +8,7 @@ What this repository does (see [run.sh](run.sh)):
 
 1. Convert the training data / training labels into YOLOX format using [extract_dataset.py](extract_dataset.py).
 1. Train YOLOX model.
-1. Convert the YOLOv3 model into TFLite format.
+1. Convert the YOLOv3 model into ONNX & TFLite formats.
 1. Done!
 
 ## Running the pipeline
@@ -27,7 +27,7 @@ You run this pipeline via Docker. This encapsulates all dependencies and package
 
     ```
     $ edge-impulse-blocks init
-    # Answer the questions, select "Object Detection" for 'What type of data does this model operate on?' and "YOLOv3" for 'What's the last layer...'
+    # Answer the questions, select "Object Detection" for 'What type of data does this model operate on?' and "YOLOv5" for 'What's the last layer...'
     ```
 
 8. Fetch new data via:
@@ -45,7 +45,5 @@ You run this pipeline via Docker. This encapsulates all dependencies and package
 10. Run the container to test the script (you don't need to rebuild the container if you make changes):
 
     ```
-    $ docker run --shm-size=4096m  --rm -it -v $PWD:/scripts --entrypoint /bin/bash yolox
-    $ cd yolox-repo
-    $ python3 -m yolox.tools.train -n yolox-nano-ti-lite -d 0 -b 32 -o
+    $ docker run --rm -it -v $PWD:/scripts yolox --data-directory data --out-directory out --epochs 30 --learning-rate 0.01
     ```

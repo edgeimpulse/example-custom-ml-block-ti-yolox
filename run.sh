@@ -58,52 +58,26 @@ DATA_DIRECTORY=$(realpath $DATA_DIRECTORY)
 
 IMAGE_SIZE=$(python3 get_image_size.py --data-directory "$DATA_DIRECTORY")
 
-# convert Edge Impulse dataset (in Numpy format, with JSON for labels into something YOLOv3 understands)
-python3 -u extract_dataset.py --data-directory $DATA_DIRECTORY --out-directory /data/converted
+# convert Edge Impulse dataset (in Numpy format, with JSON for labels into something YOLOX understands)
+cd /app/yolox-repo
+rm -rf datasets/COCO/
+python3 -u /scripts/extract_dataset.py --data-directory $DATA_DIRECTORY --out-directory datasets/COCO/ --epochs $EPOCHS
 
-# Disable W&B prompts
-export WANDB_MODE=disabled
-
-# Disable ONNX export during training
-sed -i -e "s/ONNX_EXPORT = True/ONNX_EXPORT = False/" /app/yolov3/models.py
-
-cd /app/yolov3
-# train:
-#     --freeze 10 - freeze the bottom layers of the network
-#     --workers 0 - as this otherwise requires a larger /dev/shm than we have on Edge Impulse prod,
-#                   there's probably a workaround for this, but we need to check with infra.
-python3 -u train.py --img $IMAGE_SIZE \
-    --epochs $EPOCHS \
-    --data /data/converted/data.data \
-    --cfg /data/converted/yolov3-tiny.cfg \
-    --weights /app/yolov3-tiny.pt \
-    --name yolov3_results \
-    --cache
+# train model
+python3 -m yolox.tools.train -f datasets/COCO/custom_nano_ti_lite.py -c ../yolox_nano_ti_lite_26p1_41p8_checkpoint.pth -d 0 -b 16 -o -w 1
 echo "Training complete"
 echo ""
 
 mkdir -p $OUT_DIRECTORY
 
-# Copy pytorch model
-cp weights/last_yolov3_results.pt $OUT_DIRECTORY/model.pt
-
-echo "Converting to darknet weights..."
-python3  -c "from models import *; convert('/data/converted/yolov3-tiny.cfg', '/app/yolov3/weights/last_yolov3_results.pt')"
-cp weights/last_yolov3_results.weights $OUT_DIRECTORY/model.weights
-echo "Converting to darknet weights OK"
-echo ""
-
 echo "Converting to ONNX..."
-cd /scripts/darknet/yolo
-python3 convert_to_pytorch.py custom
-python3 convert_to_onnx.py custom --image-size $IMAGE_SIZE
+python3 -m yolox.tools.export_onnx -f datasets/COCO/custom_nano_ti_lite.py
+cp ./yolox.onnx $OUT_DIRECTORY/model.onnx
 echo "Converting to ONNX OK"
 echo ""
 
-# the onnx file is now in /app/yolov3/weights/last_yolov3_results.onnx
-
 # export as f32
-echo "Converting to TensorFlow Lite model (fp16)..."
-python3 /scripts/conversion.py --onnx-file /app/yolov3/weights/last_yolov3_results.onnx --out-file $OUT_DIRECTORY/model.tflite
-echo "Converting to TensorFlow Lite model (fp16) OK"
+echo "Converting to TensorFlow Lite model (fp32)..."
+python3 /scripts/conversion.py --onnx-file $OUT_DIRECTORY/model.onnx --out-file $OUT_DIRECTORY/model.tflite
+echo "Converting to TensorFlow Lite model (fp32) OK"
 echo ""

@@ -22,11 +22,11 @@ import cv2
 _SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
 _NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":57}
 _VAL_ANN = {
-    "coco":"instances_val2017.json", 
+    "coco":"instances_val2017.json",
     "linemod":"instances_test.json"
 }
 _TRAIN_ANN = {
-    "coco":"instances_train2017.json", 
+    "coco":"instances_train2017.json",
     "linemod":"instances_train.json"
 }
 _SUPPORTED_TASKS = {
@@ -143,8 +143,8 @@ def main():
         args.experiment_name = exp.exp_name
 
     model = exp.get_model()
-    
-    
+
+
     if args.ckpt is None:
         file_name = os.path.join(exp.output_dir, args.experiment_name)
         ckpt_file = os.path.join(file_name, "best_ckpt.pth")
@@ -169,13 +169,13 @@ def main():
     if not args.export_det:
         model.head.decode_in_inference = False
     if args.export_det:
-        post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=80)
+        post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=2)
         model_det = nn.Sequential(model, post_process)
         model_det.eval()
         args.output = 'detections'
 
     logger.info("loading checkpoint done.")
-    img = cv2.imread("./assets/dog.jpg")
+    img = cv2.imread("/scripts/out/train/000000000000.jpg")
     img, ratio = preprocess(img, exp.test_size)
     img = img[None, ...]
     img = img.astype('float32')
@@ -183,6 +183,7 @@ def main():
     dummy_input = torch.randn(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
     if args.export_det:
         output = model_det(img)
+        print('output', output)
 
     if args.export_det:
         torch.onnx._export(

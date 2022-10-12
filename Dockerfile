@@ -64,6 +64,9 @@ COPY yolox-repo/requirements.txt ./yolox-repo/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install -r yolox-repo/requirements.txt
 
+# Grab weights
+RUN wget http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-yolox/yolox_nano_ti_lite_26p1_41p8_checkpoint.pth
+
 WORKDIR /scripts
 
 # Copy the normal files (e.g. run.sh and the extract_dataset scripts in)

@@ -66,6 +66,8 @@ if __name__ == '__main__':
     origin_img = cv2.imread(args.image_path)
     img, ratio = preprocess(origin_img, input_shape)
 
+    print('img', img[0:5])
+
     session = onnxruntime.InferenceSession(args.model)
 
     ort_inputs = {session.get_inputs()[0].name: img[None, :, :, :]}

@@ -47,3 +47,9 @@ You run this pipeline via Docker. This encapsulates all dependencies and package
     ```
     $ docker run --rm -it -v $PWD:/scripts yolox --data-directory data --out-directory out --epochs 30 --learning-rate 0.01
     ```
+
+11. Now you can run inference as well:
+
+    ```
+    $ python3 tflite-inference-test.py
+    ```

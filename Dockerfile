@@ -37,36 +37,30 @@ RUN /bin/bash install_cmake.sh && \
 
 # Install TensorFlow
 COPY dependencies/install_tensorflow.sh install_tensorflow.sh
-RUN --mount=type=cache,target=/root/.cache/pip --mount=type=cache,target=/app/wheels \
-    /bin/bash install_tensorflow.sh && \
+RUN /bin/bash install_tensorflow.sh && \
     rm install_tensorflow.sh
 
 # Install TensorFlow addons
 COPY dependencies/install_tensorflow_addons.sh install_tensorflow_addons.sh
-RUN --mount=type=cache,target=/root/.cache/pip --mount=type=cache,target=/app/wheels \
-    /bin/bash install_tensorflow_addons.sh && \
+RUN /bin/bash install_tensorflow_addons.sh && \
     rm install_tensorflow_addons.sh
 
 # Install onnx-tensorflow
-RUN --mount=type=cache,target=/root/.cache/pip \
-    git clone https://github.com/onnx/onnx-tensorflow.git && \
+RUN git clone https://github.com/onnx/onnx-tensorflow.git && \
     cd onnx-tensorflow && \
     git checkout 3f87e6235c96f2f66e523d95dc35ff4802862231 && \
     pip3 install -e .
 
 # Local dependencies
 COPY requirements.txt ./
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 COPY requirements-nvidia.txt ./
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install -r requirements-nvidia.txt
+RUN pip3 install -r requirements-nvidia.txt
 
 # YOLOX dependencies (which are of course not versioned again)
 COPY yolox-repo/requirements.txt ./yolox-repo/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install -r yolox-repo/requirements.txt
+RUN pip3 install -r yolox-repo/requirements.txt
 
 # Grab weights
 RUN wget http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-yolox/yolox_nano_ti_lite_26p1_41p8_checkpoint.pth

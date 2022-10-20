@@ -27,8 +27,12 @@ You run this pipeline via Docker. This encapsulates all dependencies and package
 
     ```
     $ edge-impulse-blocks init
-    # Answer the questions, select "Object Detection" for 'What type of data does this model operate on?' and "YOLOX" for 'What's the last layer...'
+    # Answer the questions:
+    #   Select "Object Detection" for 'What type of data does this model operate on?'
+    #   Select "YOLOX" for 'What's the last layer...'
     ```
+
+    (If YOLOX does not show up, then update the Edge Impulse CLI)
 
 8. Fetch new data via:
 

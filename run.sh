@@ -72,12 +72,18 @@ mkdir -p $OUT_DIRECTORY
 
 echo "Converting to ONNX..."
 python3 -m yolox.tools.export_onnx -f datasets/COCO/custom_nano_ti_lite.py
-cp ./yolox.onnx $OUT_DIRECTORY/model.onnx
+# YOLOX has 0..255 inputs, but we want 0..1 (consistent with other models)
+# so rewrite the ONNX graph to inject a `Mul` op
+python3 /scripts/ei-onnx-tools/inject-mul-255.py --onnx-file ./yolox.onnx --out-file $OUT_DIRECTORY/model.onnx
+
+# also create a second copy with order changed to NHWC (from NCHW) - to be used for the TFLite conversion
+cp $OUT_DIRECTORY/model.onnx /tmp/model.onnx
+python3 /scripts/ei-onnx-tools/convert-to-nhwc.py --onnx-file /tmp/model.onnx --out-file /tmp/model.onnx
 echo "Converting to ONNX OK"
 echo ""
 
 # export as f32
 echo "Converting to TensorFlow Lite model (fp32)..."
-python3 /scripts/conversion.py --onnx-file $OUT_DIRECTORY/model.onnx --out-file $OUT_DIRECTORY/model.tflite
+python3 /scripts/ei-onnx-tools/convert-to-tflite.py --onnx-file /tmp/model.onnx --out-file $OUT_DIRECTORY/model.tflite
 echo "Converting to TensorFlow Lite model (fp32) OK"
 echo ""

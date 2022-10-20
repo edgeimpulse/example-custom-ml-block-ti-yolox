@@ -59,6 +59,10 @@ COPY requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install -r requirements.txt
 
+COPY requirements-nvidia.txt ./
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip3 install -r requirements-nvidia.txt
+
 # YOLOX dependencies (which are of course not versioned again)
 COPY yolox-repo/requirements.txt ./yolox-repo/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -66,6 +70,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # Grab weights
 RUN wget http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-yolox/yolox_nano_ti_lite_26p1_41p8_checkpoint.pth
+
+# Rest of YOLOX
+COPY yolox-repo/ ./yolox-repo
 
 WORKDIR /scripts
 

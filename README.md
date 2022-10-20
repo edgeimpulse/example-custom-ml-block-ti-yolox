@@ -8,7 +8,7 @@ What this repository does (see [run.sh](run.sh)):
 
 1. Convert the training data / training labels into YOLOX format using [extract_dataset.py](extract_dataset.py).
 1. Train YOLOX model.
-1. Convert the YOLOv3 model into ONNX & TFLite formats.
+1. Convert the YOLOX model into ONNX & TFLite formats.
 1. Done!
 
 ## Running the pipeline
@@ -45,7 +45,7 @@ You run this pipeline via Docker. This encapsulates all dependencies and package
 10. Run the container to test the script (you don't need to rebuild the container if you make changes):
 
     ```
-    $ docker run --rm -it -v $PWD:/scripts yolox --data-directory data --out-directory out --epochs 30 --learning-rate 0.01
+    $ docker run --rm -it -v $PWD:/scripts -v $PWD/yolox-repo:/app/yolox-repo yolox --data-directory data --out-directory out --epochs 30 --learning-rate 0.01
     ```
 
 11. Now you can run inference as well:

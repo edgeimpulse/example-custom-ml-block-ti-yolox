@@ -4,6 +4,8 @@ import cv2
 import os
 import math
 
+np.set_printoptions(suppress=True)
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def process_input(input_details, data):
@@ -68,10 +70,10 @@ def invoke(interpreter, item, specific_input_shape):
     output = interpreter.get_tensor(output_details[0]['index'])
     return output, output_details
 
-interpreter = tf.lite.Interpreter(model_path=os.path.join(dir_path, "out/model-rewritten.tflite"))
+interpreter = tf.lite.Interpreter(model_path='/Users/janjongboom/Downloads/ei-jan-vs-niet-jan-yolox-object-detection-tensorflow-lite-float32-model(2).lite')
 interpreter.allocate_tensors()
 
-img = cv2.imread(os.path.join(dir_path, 'out/train/000000000244.jpg'))
+img = cv2.imread('/Users/janjongboom/Downloads/thumbs.2v5gvl92.jpg')
 print('img shape', img.shape)
 
 input_data = get_features_from_img(interpreter, img)
@@ -86,6 +88,9 @@ output0 = interpreter.get_tensor(output_details[0]['index'])
 # output1 = interpreter.get_tensor(output_details[1]['index'])
 print('output0.shape', output0.shape)
 # print('output1.shape', output1.shape)
+
+# for o in np.array(output0).flatten():
+#     print(o, end=', ')
 
 def yolov5_class_filter(classdata):
     classes = []  # create a list
@@ -183,19 +188,24 @@ def yolox_detect(output, score_thr):
         hsizes = [img_size[0] // stride for stride in strides]
         wsizes = [img_size[1] // stride for stride in strides]
 
+        print('hsizes', hsizes)
+        print('wsizes', wsizes)
+
         for hsize, wsize, stride in zip(hsizes, wsizes, strides):
+            print('hsize', hsize, 'wsize', wsize, 'stride', stride)
+
             xv, yv = np.meshgrid(np.arange(wsize), np.arange(hsize))
             grid = np.stack((xv, yv), 2).reshape(1, -1, 2)
             grids.append(grid)
             shape = grid.shape[:2]
             expanded_strides.append(np.full((*shape, 1), stride))
 
-        print('expanded_strides', expanded_strides)
-
         grids = np.concatenate(grids, 1)
         expanded_strides = np.concatenate(expanded_strides, 1)
         outputs[..., :2] = (outputs[..., :2] + grids) * expanded_strides
         outputs[..., 2:4] = np.exp(outputs[..., 2:4]) * expanded_strides
+
+        print('outputs', outputs)
 
         return outputs
 
@@ -218,13 +228,9 @@ def yolox_detect(output, score_thr):
     predictions = yolox_postprocess(output, tuple([ img.shape[0], img.shape[1] ]))[0]
 
     boxes = predictions[:, :4]
+    print('boxes', boxes)
     scores = predictions[:, 4:5] * predictions[:, 5:]
-
-    boxes_xyxy = np.ones_like(boxes)
-    boxes_xyxy[:, 0] = boxes[:, 0] - boxes[:, 2]/2.
-    boxes_xyxy[:, 1] = boxes[:, 1] - boxes[:, 3]/2.
-    boxes_xyxy[:, 2] = boxes[:, 0] + boxes[:, 2]/2.
-    boxes_xyxy[:, 3] = boxes[:, 1] + boxes[:, 3]/2.
+    print('scores', scores)
 
     boxes_xyxy = np.ones_like(boxes)
     boxes_xyxy[:, 0] = boxes[:, 0] - boxes[:, 2]/2.

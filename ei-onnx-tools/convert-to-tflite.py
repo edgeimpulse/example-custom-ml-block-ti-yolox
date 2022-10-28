@@ -4,7 +4,7 @@ import onnx
 from onnx_tf.backend import prepare # https://github.com/onnx/onnx-tensorflow
 import tensorflow as tf
 
-parser = argparse.ArgumentParser(description='YOLOv3 model to TFLite')
+parser = argparse.ArgumentParser(description='ONNX model to TFLite')
 parser.add_argument('--onnx-file', type=str, required=True)
 parser.add_argument('--out-file', type=str, required=True)
 
@@ -23,6 +23,10 @@ tf_rep.export_graph(tf_model_path)
 
 # TF => TFLite
 converter = tf.lite.TFLiteConverter.from_saved_model(tf_model_path)
+converter.target_spec.supported_ops = [
+  tf.lite.OpsSet.TFLITE_BUILTINS, # enable TensorFlow Lite ops.
+  tf.lite.OpsSet.SELECT_TF_OPS # enable TensorFlow ops.
+]
 tflite_model = converter.convert()
 
 # Save the model

@@ -230,8 +230,8 @@ def add(
             if graph_node.name == destop_name:
                 dest_ops.append(graph_node)
 
-    print('src_ops', src_ops)
-    print('dest_ops', dest_ops)
+    # print('src_ops', src_ops)
+    # print('dest_ops', dest_ops)
 
     # Rewrite the input of the connection Gen OP
     if single_op_graph_node_inputs:
@@ -243,8 +243,8 @@ def add(
                 if srcop_graph_node.name == srcop_name:
                     found_output = False
                     for srcop_graph_node_output in srcop_graph_node.outputs:
-                        print('srcop_graph_node_output.name', srcop_graph_node_output.name,
-                            'srcop_output_name', srcop_output_name)
+                        # print('srcop_graph_node_output.name', srcop_graph_node_output.name,
+                        #     'srcop_output_name', srcop_output_name)
                         if srcop_graph_node_output.name == srcop_output_name:
                             for idxs, single_op_graph_node_input in enumerate(single_op_graph_node_inputs):
                                 if single_op_graph_node_input.name == addop_input_name:
@@ -257,9 +257,9 @@ def add(
                         else:
                             continue
 
-                    if not found_output:
-                        print('not found', srcop_output_name, 'in',
-                            [ x.name for x in srcop_graph_node.outputs ])
+                    # if not found_output:
+                    #     print('not found', srcop_output_name, 'in',
+                    #         [ x.name for x in srcop_graph_node.outputs ])
 
                     break
                 else:
@@ -275,13 +275,13 @@ def add(
                 if destop_graph_node.name == destop_name:
                     found_input = False
                     for idxd, destop_graph_node_input in enumerate(destop_graph_node.inputs):
-                        print('destop_graph_node_input.name', destop_graph_node_input.name,
-                            'destop_input_name', destop_input_name)
+                        # print('destop_graph_node_input.name', destop_graph_node_input.name,
+                        #     'destop_input_name', destop_input_name)
 
                         if destop_graph_node_input.name == destop_input_name:
                             for single_op_graph_node_output in single_op_graph_node_outputs:
-                                print('single_op_graph_node_output.name', single_op_graph_node_output.name,
-                                    'addop_output_name', addop_output_name)
+                                # print('single_op_graph_node_output.name', single_op_graph_node_output.name,
+                                #     'addop_output_name', addop_output_name)
                                 if single_op_graph_node_output.name == addop_output_name:
                                     found_input = True
                                     destop_graph_node.inputs[idxd] = single_op_graph_node_output

@@ -148,10 +148,14 @@ def main():
     if args.ckpt is None:
         file_name = os.path.join(exp.output_dir, args.experiment_name)
         ckpt_file = os.path.join(file_name, "best_ckpt.pth")
+        if not os.path.exists(ckpt_file):
+            ckpt_file = os.path.join(file_name, "latest_ckpt.pth")
     elif args.ckpt == "random":
         pass
     else:
         ckpt_file = args.ckpt
+
+    print('checkpoint file is', ckpt_file)
 
     if args.ckpt == "random":
         #Proceed with initialized values
@@ -175,7 +179,11 @@ def main():
         args.output = 'detections'
 
     logger.info("loading checkpoint done.")
-    img = cv2.imread("/scripts/out/train/000000000000.jpg")
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    img_path = os.path.join(dir_path, '..', 'datasets', 'COCO', 'train2017', '000000000000.jpg')
+
+    img = cv2.imread(img_path)
     img, ratio = preprocess(img, exp.test_size)
     img = img[None, ...]
     img = img.astype('float32')

@@ -16,7 +16,7 @@ tidl_yolo {
     anchor_height: 32.0
   }
   detection_output_param {
-    num_classes: 2
+    num_classes: 1
     share_location: true
     background_label_id: -1
     nms_param {

@@ -11,7 +11,7 @@ tidl_yolo {
     anchor_height: 16.0
   }
   yolo_param {
-    input: "output.1"
+    input: "output"
     anchor_width: 32.0
     anchor_height: 32.0
   }

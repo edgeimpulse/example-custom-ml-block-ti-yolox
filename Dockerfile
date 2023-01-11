@@ -62,6 +62,9 @@ RUN pip3 install -r requirements-nvidia.txt
 COPY yolox-repo/requirements.txt ./yolox-repo/requirements.txt
 RUN pip3 install -r yolox-repo/requirements.txt
 
+# numpy 1.24.0 causes issues with tensorflow 2.6.0. "AttributeError: module 'numpy' has no attribute 'object'"
+RUN python3 -m pip install numpy==1.23.4
+
 # Grab weights
 RUN wget http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-yolox/yolox_nano_ti_lite_26p1_41p8_checkpoint.pth
 

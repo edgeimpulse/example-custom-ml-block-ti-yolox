@@ -90,5 +90,10 @@ python3 -m yolox.tools.export_onnx -f datasets/COCO/custom_nano_ti_lite.py --exp
 python3 /scripts/ei-onnx-tools/inject-mul-255.py --onnx-file ./yolox.onnx --out-file $OUT_DIRECTORY/model-aux.onnx
 echo "Exporting with final detect layers OK"
 
+echo ""
+echo "Exporting prototxt..."
+cp ./yolox.prototxt $OUT_DIRECTORY/model.prototxt
+echo "Exporting prototxt OK"
+
 echo "Converting to ONNX OK"
 echo ""

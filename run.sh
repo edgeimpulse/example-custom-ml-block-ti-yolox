@@ -71,7 +71,7 @@ echo ""
 mkdir -p $OUT_DIRECTORY
 
 echo "Converting to ONNX..."
-
+echo ""
 echo "Exporting without final detect layers..."
 python3 -m yolox.tools.export_onnx -f datasets/COCO/custom_nano_ti_lite.py
 # YOLOX has 0..255 inputs, but we want 0..1 (consistent with other models)
@@ -79,6 +79,10 @@ python3 -m yolox.tools.export_onnx -f datasets/COCO/custom_nano_ti_lite.py
 python3 /scripts/ei-onnx-tools/inject-mul-255.py --onnx-file ./yolox.onnx --out-file $OUT_DIRECTORY/model.onnx
 echo "Exporting without final detect layers OK"
 
+# cleaninup intermediate output
+rm ./yolox.onnx
+
+echo ""
 echo "Exporting with final detect layers..."
 python3 -m yolox.tools.export_onnx -f datasets/COCO/custom_nano_ti_lite.py --export-det
 # YOLOX has 0..255 inputs, but we want 0..1 (consistent with other models)

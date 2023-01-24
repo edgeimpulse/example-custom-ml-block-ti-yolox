@@ -1,17 +1,17 @@
 name: "yolo_v3"
 tidl_yolo {
   yolo_param {
-    input: "onnx::Slice_709"
+    input: "709"
     anchor_width: 8.0
     anchor_height: 8.0
   }
   yolo_param {
-    input: "onnx::Slice_794"
+    input: "843"
     anchor_width: 16.0
     anchor_height: 16.0
   }
   yolo_param {
-    input: "output"
+    input: "977"
     anchor_width: 32.0
     anchor_height: 32.0
   }

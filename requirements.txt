@@ -3,7 +3,7 @@ flatbuffers==1.12
 onnx==1.11.0
 sklearn==0.0
 tensorflow_probability==0.15.0 # onnx-tf requirement (TF2.7 compatibility)
-torch==1.11.0 # why does no-one pin their dependencies, 1.12 does not work
-torchvision==0.12.0 # pairs w/ pytorch 1.11.0
+torch==1.7.1 # https://github.com/ultralytics/yolov5/issues/2558
+torchvision==0.8.2
 Pillow==9.0.0
 pycocotools==2.0.5

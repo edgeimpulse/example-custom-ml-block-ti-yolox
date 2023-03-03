@@ -17,6 +17,7 @@ onnx_graph = onnx.load(args.onnx_file)
 graph = gs.import_onnx(onnx_graph)
 input_name = graph.nodes[0].inputs[0].name
 input_shape = graph.nodes[0].inputs[0].shape
+mul_inp2_const = np.ones((1, input_shape[1], 1, 1)) * 255
 
 onnx_graph = add(
   onnx_graph=onnx_graph,
@@ -30,7 +31,7 @@ onnx_graph = add(
   add_op_name="dummy_mul",
   add_op_input_variables={
     "inp1": [np.float32, input_shape],
-    "inp2_const": [np.float32, [255]],
+    "inp2_const": [np.float32, mul_inp2_const],
   },
   add_op_output_variables={
     "out1": [np.float32, input_shape],

@@ -64,7 +64,9 @@ rm -rf datasets/COCO/
 python3 -u /scripts/extract_dataset.py --data-directory $DATA_DIRECTORY --out-directory datasets/COCO/ --epochs $EPOCHS
 
 # train model
-python3 -m yolox.tools.train -f datasets/COCO/custom_nano_ti_lite.py -c ../yolox_nano_ti_lite_26p1_41p8_checkpoint.pth -d 0 -b 16 -o -w 1
+#     -w --workers 0 - as this otherwise requires a larger /dev/shm than we have on Edge Impulse prod,
+#                      there's probably a workaround for this, but we need to check with infra.
+python3 -m yolox.tools.train -f datasets/COCO/custom_nano_ti_lite.py -c ../yolox_nano_ti_lite_26p1_41p8_checkpoint.pth -d 0 -b 16 -o -w 0
 echo "Training complete"
 echo ""
 

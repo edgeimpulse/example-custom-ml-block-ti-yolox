@@ -173,7 +173,7 @@ def main():
     if not args.export_det:
         model.head.decode_in_inference = False
     if args.export_det:
-        post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=2)
+        post_process = PostprocessExport(conf_thre=1e-6, nms_thre=0.45, num_classes=2)
         model_det = nn.Sequential(model, post_process)
         model_det.eval()
         args.output = 'detections'

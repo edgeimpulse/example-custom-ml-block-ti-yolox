@@ -1,0 +1,7 @@
+[{
+    "name": "Number of training cycles",
+    "value": "30",
+    "type": "int",
+    "help": "Number of epochs to train the neural network on.",
+    "param": "epochs"
+}]

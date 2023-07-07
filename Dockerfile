@@ -3,7 +3,7 @@ ARG UBUNTU_VERSION=20.04
 
 ARG ARCH=
 ARG CUDA=11.2
-FROM nvidia/cuda${ARCH:+-$ARCH}:${CUDA}.1-base-ubuntu${UBUNTU_VERSION} as base
+FROM nvidia/cuda${ARCH:+-$ARCH}:${CUDA}.2-base-ubuntu${UBUNTU_VERSION} as base
 ARG CUDA
 ARG CUDNN=8.1.0.77-1
 ARG CUDNN_MAJOR_VERSION=8
@@ -72,5 +72,7 @@ WORKDIR /scripts
 
 # Copy the normal files (e.g. run.sh and the extract_dataset scripts in)
 COPY . ./
+
+ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
 ENTRYPOINT ["/bin/bash", "run.sh"]

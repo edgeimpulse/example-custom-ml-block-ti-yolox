@@ -14,11 +14,6 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
-    --learning-rate) # e.g. 0.01
-      LEARNING_RATE="$2"
-      shift # past argument
-      shift # past value
-      ;;
     --data-directory) # e.g. 0.2
       DATA_DIRECTORY="$2"
       shift # past argument
@@ -38,10 +33,6 @@ done
 
 if [ -z "$EPOCHS" ]; then
     echo "Missing --epochs"
-    exit 1
-fi
-if [ -z "$LEARNING_RATE" ]; then
-    echo "Missing --learning-rate"
     exit 1
 fi
 if [ -z "$DATA_DIRECTORY" ]; then

@@ -94,4 +94,4 @@ You can also push this block back to Edge Impulse, that makes it available like 
     $ edge-impulse-blocks push
     ```
 
-2. The block is now available under any of your projects, via  **Create impulse > Add learning block > Object Detection (Images)**.
+2. The block is now available under any of your projects, via  **Create impulse > Add learning block**.
